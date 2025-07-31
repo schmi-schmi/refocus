@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time to Refocus!</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5; /* Light grey background */
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.6;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 900px;
+            width: 100%;
+            text-align: center;
+            overflow: hidden; /* For rounded corners on quote block */
+        }
+
+        h1 {
+            color: #2c3e50; /* Darker blue/grey */
+            margin-bottom: 25px;
+            font-size: 2.5em;
+            letter-spacing: -0.5px;
+        }
+
+        .quote-block {
+            background-color: #e0f7fa; /* Light cyan for soothing effect */
+            border-left: 6px solid #00bcd4; /* Teal accent */
+            padding: 20px 25px;
+            margin: 30px auto;
+            border-radius: 8px;
+            font-style: italic;
+            font-size: 1.2em;
+            max-width: 700px;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .quote-block p {
+            margin: 0;
+        }
+
+        .quote-block footer {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #555;
+            text-align: right;
+        }
+
+        .alternatives-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .alternative-card {
+            background-color: #f8f9fa; /* Very light grey for cards */
+            border-radius: 10px;
+            padding: 20px;
+            text-align: left;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #eee; /* Subtle border */
+        }
+
+        .alternative-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
+        }
+
+        .alternative-card h3 {
+            color: #34495e; /* Darker blue/grey for headings */
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-size: 1.4em;
+        }
+
+        .alternative-card p {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .alternative-card img {
+            max-width: 100%;
+            height: 150px; /* Fixed height for consistency */
+            object-fit: cover; /* Ensures image covers area without distortion */
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .container {
+                padding: 20px;
+            }
+            .quote-block {
+                font-size: 1.1em;
+            }
+            .alternatives-grid {
+                grid-template-columns: 1fr; /* Stack on smaller screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hey there, incredible human!</h1>
+        <div class="quote-block">
+            <p>
+                "It's not stress that kills us, it is our reaction to it."
+            </p>
+            <footer>— Hans Selye</footer>
+        </div>
+
+        <p>You landed here because you're choosing to do things differently. You're building new patterns, and that takes courage. Instead of soothing with a quick fix, let's soothe with something truly nourishing. Here are some alternatives:</p>
+
+        <div class="alternatives-grid">
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/a8dadc/ffffff?text=Water+Plants" alt="Watering plants">
+                <h3>Green Thumb Moment</h3>
+                <p>Water your plants. Check on their new leaves. Give them a little mist. Connect with nature, even indoors!</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/fca311/ffffff?text=Read+Book" alt="Reading a book">
+                <h3>Dive into a Chapter</h3>
+                <p>Read a chapter of that book you're currently enjoying (or start a new one!). Let your imagination wander.</p>
+                <p><em>(My current read: "The Book Thief" by Markus Zusak)</em></p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/caf0f8/ffffff?text=Make+Tea" alt="Making a cup of tea">
+                <h3>Ritual of Warmth</h3>
+                <p>Make yourself a beautiful cup of tea. Savor the warmth, the aroma, and the quiet moment of preparation.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/d4a5a5/ffffff?text=Journal" alt="Journaling">
+                <h3>Quiet Reflection</h3>
+                <p>Grab your journal. Write for 5 minutes about what's on your mind, or list 3 things you're grateful for.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/bde0fe/ffffff?text=Exercise" alt="Someone exercising">
+                <h3>Move Your Body</h3>
+                <p>Do 10 minutes of light exercise or stretching. Get that blood flowing and release some tension.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/ffd670/ffffff?text=Tidy+Up" alt="Tidying a home">
+                <h3>Mini-Clean Up</h3>
+                <p>Tidy one small area: clear your desk, wipe down the kitchen counter, or organize a drawer. A little progress goes a long way.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/80ed99/ffffff?text=Play+with+Cats" alt="Person playing with a cat">
+                <h3>Feline Therapy</h3>
+                <p>Spend 5-10 minutes playing with your cats. Their purrs are a powerful antidote to stress.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/90e0ef/ffffff?text=Drink+Water" alt="Drinking a glass of water">
+                <h3>Hydrate & Refresh</h3>
+                <p>Grab a large glass of water. Sometimes a simple physical need is disguised as emotional hunger.</p>
+            </div>
+            <div class="alternative-card">
+                <img src="https://via.placeholder.com/400x150/e9c46a/ffffff?text=Little+Project" alt="Creative project">
+                <h3>Nourish Creativity</h3>
+                <p>Work on one of your small projects for 15 minutes. Even a tiny step forward can feel incredibly rewarding.</p>
+            </div>
+        </div>
+
+        <p class="footer-note">
+            Remember: This isn't about perfection, it's about progress. You're doing great just by being here.
+            Be kind to yourself through this process. You've got this! ✨
+        </p>
+    </div>
+</body>
+</html>
