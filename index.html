@@ -130,10 +130,7 @@
                 });
         }
 
-        function getAllTodos() {
-            const data = readStorage();
-            return data.todos.filter(t => !t.deleted);
-        }
+        // getAllTodos removed (unused)
 
         function addTodo(text, day) {
             const data = readStorage();
@@ -424,67 +421,186 @@
         // Initialize todo app
         const todoApp = new TodoApp();
         
-        // Carousel data
-        const carouselData = [
-            {
-                image: './img/_(10).jpeg',
+        // Carousel image categories
+        const categoryImages = {
+            plants: ['_(10).jpeg'],
+            reading: ['_(8).jpeg'],
+            tea: ['_(3).jpeg'],
+            journaling: ['_(6).jpeg', '_(12).jpg'],
+            exercise: ['_(9).jpeg'],
+            cleaning: ['_(4).jpeg'],
+            cats: ['_(11).jpg', '_(12).jpg'],
+            hydration: ['_(5).jpeg'],
+            projects: ['_(1).jpeg', '_(2).jpeg']
+        };
+
+        function resolveImageForItem(item) {
+            if (item.category) {
+                const candidates = categoryImages[item.category] || [];
+                if (candidates.length > 0) {
+                    const choice = candidates[Math.floor(Math.random() * candidates.length)];
+                    // Build path under ./img/<category>/<file>
+                    return `./img/${item.category}/${choice}`;
+                }
+            }
+            return item.image;
+        }
+
+        // Dynamic category discovery (HTTP only). Falls back to static mapping when unavailable
+        const categoryImageCache = {};
+        const isHttpContext = location.protocol === 'http:' || location.protocol === 'https:';
+
+        async function listCategoryImages(category) {
+            if (!isHttpContext) return [];
+            if (categoryImageCache[category]) return categoryImageCache[category];
+
+            const base = `./img/${category}/`;
+            // 1) Try manifest.json if present
+            try {
+                const manifestRes = await fetch(base + 'manifest.json', { cache: 'no-cache' });
+                if (manifestRes.ok) {
+                    const files = await manifestRes.json();
+                    if (Array.isArray(files)) {
+                        const normalized = files
+                            .filter(name => typeof name === 'string')
+                            .filter(name => /\.(jpe?g|png|gif|webp)$/i.test(name))
+                            .map(name => base + name);
+                        categoryImageCache[category] = normalized;
+                        return normalized;
+                    }
+                }
+            } catch (_) { /* ignore */ }
+
+            // 2) Try directory listing (works on some static servers like python http.server)
+            try {
+                const dirRes = await fetch(base, { cache: 'no-cache' });
+                if (dirRes.ok) {
+                    const html = await dirRes.text();
+                    // Parse links from listing
+                    const container = document.createElement('div');
+                    container.innerHTML = html;
+                    const links = Array.from(container.querySelectorAll('a'))
+                        .map(a => a.getAttribute('href'))
+                        .filter(Boolean)
+                        .filter(href => /\.(jpe?g|png|gif|webp)$/i.test(href))
+                        .map(href => base + href.replace(/^\/?/, ''));
+                    if (links.length > 0) {
+                        categoryImageCache[category] = links;
+                        return links;
+                    }
+                }
+            } catch (_) { /* ignore */ }
+
+            // 3) Fallback to static mapping already defined
+            const staticCandidates = (categoryImages[category] || []).map(name => `./img/${category}/${name}`);
+            categoryImageCache[category] = staticCandidates;
+            return staticCandidates;
+        }
+
+        async function resolveImageForItemAsync(item) {
+            if (!item.category) return item.image;
+            const files = await listCategoryImages(item.category);
+            if (files.length === 0) return resolveImageForItem(item);
+            return files[Math.floor(Math.random() * files.length)];
+        }
+
+        // Default metadata for known categories (used when generating dynamically)
+        const DEFAULT_CAROUSEL_METADATA = {
+            plants: {
                 title: 'Care for your babies',
                 description: 'Water your plants. Check on their new leaves. Give them a little mist. Connect with nature, even indoors!'
             },
-            {
-                image: './img/_(8).jpeg',
+            reading: {
                 title: 'Dive into a Chapter',
                 description: 'Read a chapter of that book you\'re currently enjoying (or start a new one!). Let your imagination wander.'
             },
-            {
-                image: './img/_(3).jpeg',
+            tea: {
                 title: 'Ritual of Warmth',
                 description: 'Make yourself a cup of tea. Or coffee. Enjoy the process of waiting and be mindful.'
             },
-            {
-                image: './img/_(6).jpeg',
+            journaling: {
                 title: 'Quiet Reflection',
                 description: 'Grab the iPad. Write for 5 minutes about what\'s on your mind, draw something you think would be cute.'
             },
-            {
-                image: './img/_(9).jpeg',
+            exercise: {
                 title: 'Move Your Body',
                 description: 'Do 10 minutes of light exercise or stretching. Get that blood flowing and release some tension.'
             },
-            {
-                image: './img/_(4).jpeg',
+            cleaning: {
                 title: 'Mini-Clean Up',
                 description: 'Tidy one small area: clear your desk, wipe down the kitchen counter, or organize a drawer. A little progress goes a long way.'
             },
-            {
-                image: './img/_(7).jpeg',
+            cats: {
                 title: 'Feline Therapy',
                 description: 'Spend 5-10 minutes playing with your cats. Their purrs are a powerful antidote to stress.'
             },
-            {
-                image: './img/_(5).jpeg',
+            hydration: {
                 title: 'Hydrate & Refresh',
                 description: 'Grab a large glass of water. Sometimes a simple physical need is disguised as emotional hunger.'
             },
-            {
-                image: './img/_(1).jpeg',
+            projects: {
                 title: 'Nourish Creativity',
                 description: 'Work on one of your small projects for 15 minutes. Even a tiny step forward can feel incredibly rewarding.'
             }
-        ];
+        };
 
-        let currentIndex = Math.floor(Math.random() * carouselData.length);
+        function toTitleCase(word) {
+            return String(word || '')
+                .replace(/[-_]/g, ' ')
+                .replace(/\b\w/g, (m) => m.toUpperCase());
+        }
+
+        function makeCarouselItem(category) {
+            const meta = DEFAULT_CAROUSEL_METADATA[category] || {};
+            return {
+                category,
+                title: meta.title || toTitleCase(category),
+                description: meta.description || 'Do a small, mindful action in this category to refocus your energy.'
+            };
+        }
+
+        let carouselData = [];
+
+        async function loadCarouselData() {
+            if (isHttpContext) {
+                try {
+                    const res = await fetch('./img/manifest.json', { cache: 'no-cache' });
+                    if (res.ok) {
+                        const categories = await res.json();
+                        if (Array.isArray(categories) && categories.length > 0) {
+                            return categories
+                                .filter((name) => typeof name === 'string')
+                                .map((name) => makeCarouselItem(name));
+                        }
+                    }
+                } catch (_) { /* ignore */ }
+            }
+
+            // Fallback to known defaults when manifest is unavailable
+            return Object.keys(DEFAULT_CAROUSEL_METADATA).map((name) => ({
+                category: name,
+                title: DEFAULT_CAROUSEL_METADATA[name].title,
+                description: DEFAULT_CAROUSEL_METADATA[name].description
+            }));
+        }
+
+        let currentIndex = 0;
         const track = document.getElementById('carousel-track');
         const currentNum = document.getElementById('current-num');
         const totalNum = document.getElementById('total-num');
         let slides = [];
 
-        function createSlides() {
+        async function createSlides() {
             track.innerHTML = '';
             carouselData.forEach((item, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'carousel-slide';
-                slide.style.backgroundImage = `url('${item.image}')`;
+                // Set a temporary image while resolving
+                slide.style.backgroundImage = `url('${resolveImageForItem(item)}')`;
+                // Resolve asynchronously for dynamic folders
+                resolveImageForItemAsync(item).then((url) => {
+                    if (url) slide.style.backgroundImage = `url('${url}')`;
+                });
                 slide.innerHTML = `
                     <h3>${item.title}</h3>
                     <p>${item.description}</p>
@@ -556,9 +672,20 @@
         });
 
         // Initialize
-        totalNum.textContent = carouselData.length;
-        createSlides();
-        updateSlides();
+        (async () => {
+            try {
+                carouselData = await loadCarouselData();
+                if (!Array.isArray(carouselData) || carouselData.length === 0) {
+                    carouselData = [];
+                }
+                totalNum.textContent = carouselData.length;
+                currentIndex = carouselData.length > 0 ? Math.floor(Math.random() * carouselData.length) : 0;
+                await createSlides();
+                updateSlides();
+            } catch (err) {
+                console.error('Failed to initialize carousel', err);
+            }
+        })();
     </script>
 </body>
 </html>

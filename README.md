@@ -77,6 +77,39 @@ refocus/
 └── img/               # Carousel images
 ```
 
+## Image Categories for Carousel
+
+You can organize images by category and have each carousel item randomly use an image from its category.
+
+How it works:
+- Each carousel item in `index.html` has an optional `category` field (e.g. `cats`, `plants`).
+- A `categoryImages` map defines available images per category.
+- On each load, an image is randomly chosen from the relevant category.
+
+To add your own categories/images:
+1. Create folders like `img/cats`, `img/plants`, etc., or keep images in `img/`.
+2. Add your image paths to the `categoryImages` map in `index.html`.
+3. Ensure the carousel item has `category: '<your-category>'`.
+
+Example snippet in `index.html`:
+
+```javascript
+const categoryImages = {
+  cats: [
+    './img/cats/cat1.jpg',
+    './img/cats/cat2.jpg'
+  ],
+  plants: [
+    './img/plants/green1.jpg'
+  ]
+};
+
+const carouselData = [
+  { title: 'Feline Therapy', description: '...', category: 'cats' },
+  { title: 'Care for your babies', description: '...', category: 'plants' }
+];
+```
+
 ## Technologies Used
 
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3
