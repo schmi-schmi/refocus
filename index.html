@@ -473,7 +473,7 @@
             }
         ];
 
-        let currentIndex = 0;
+        let currentIndex = Math.floor(Math.random() * carouselData.length);
         const track = document.getElementById('carousel-track');
         const currentNum = document.getElementById('current-num');
         const totalNum = document.getElementById('total-num');
