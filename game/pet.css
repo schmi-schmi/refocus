@@ -1,0 +1,67 @@
+/* Overlay container that holds the transparent kaboom canvas */
+#pet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none; /* Let the main app remain interactive */
+}
+
+#pet-overlay canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Small UI for interacting with the pet; allow pointer events here */
+.pet-ui {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 8px;
+  z-index: 10000;
+  pointer-events: auto; /* Buttons should be clickable */
+}
+
+.pet-ui button {
+  appearance: none;
+  border: 1px solid rgba(0,0,0,0.2);
+  background: rgba(255,255,255,0.8);
+  color: #222;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+  backdrop-filter: blur(4px);
+}
+
+.pet-ui button:hover {
+  background: rgba(255,255,255,0.95);
+}
+
+.pet-ui .indicator {
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  font-size: 12px;
+}
+
+/* Tooltip for cat stats */
+.cat-tooltip {
+  position: fixed;
+  z-index: 10001;
+  pointer-events: none;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  backdrop-filter: blur(4px);
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+}
+
+
