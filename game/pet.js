@@ -260,17 +260,21 @@ export function spawnCat(k, deps) {
       const prevLocked = cat.lockedDesire;
       let nextLock = prevLocked;
 
-      // Emergency override if something is critically low
-      const criticals = [
-        { need: 'water', value: cat.stats.water, th: CRITICAL_THRESHOLDS.water },
-        { need: 'food', value: cat.stats.food, th: CRITICAL_THRESHOLDS.food },
-        { need: 'bed', value: cat.stats.energy, th: CRITICAL_THRESHOLDS.energy },
-      ];
-      const critical = criticals.find(c => c.value < c.th);
-      if (critical) {
-        nextLock = critical.need;
-      } else if (!nextLock) {
-        nextLock = chooseDominantNeed();
+      // Only choose a new lock when none is set.
+      // If multiple needs are critical, pick the most depleted to avoid flopping.
+      if (!prevLocked) {
+        const criticals = [
+          { need: 'water', value: cat.stats.water, th: CRITICAL_THRESHOLDS.water },
+          { need: 'food', value: cat.stats.food, th: CRITICAL_THRESHOLDS.food },
+          { need: 'bed', value: cat.stats.energy, th: CRITICAL_THRESHOLDS.energy },
+        ];
+        const below = criticals.filter((c) => c.value < c.th);
+        if (below.length > 0) {
+          below.sort((a, b) => a.value - b.value);
+          nextLock = below[0].need;
+        } else {
+          nextLock = chooseDominantNeed();
+        }
       }
 
       // If taking a new lock, compute a fresh randomized target for this engagement
