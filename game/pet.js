@@ -289,6 +289,8 @@ export function spawnCat(k, deps) {
     let desiredX = laserActive ? mouse.x : (targetX ?? cat.pos.x);
     let desiredY = laserActive ? mouse.y : getCatFloorY();
 
+    console.log(`Cat state: ${cat.state}, desire: ${cat.desire}, locked: ${cat.lockedDesire}, target: ${desiredX}`);
+
     // Navigate to items if there's a desire
     if (!laserActive && cat.desire && typeof deps.getItemTargets === 'function') {
       const targets = deps.getItemTargets();
