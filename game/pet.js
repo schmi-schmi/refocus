@@ -312,7 +312,7 @@ export function spawnCat(k, deps) {
       }
     }
     // Update state and apply sleeping recovery only when truly sleeping
-    if (cat.state === 'sleeping' && cat.desire === 'bed') {
+    if (cat.state === 'sleeping' && cat.desire === 'bed' && cat.lockedDesire === 'bed') {
       // Snap to bed center and freeze motion to prevent jitter
       const t = typeof deps.getItemTargets === 'function' ? deps.getItemTargets() : null;
       const bedX = t && t.bed ? t.bed.x : undefined;
@@ -333,7 +333,7 @@ export function spawnCat(k, deps) {
         cat.state = 'idle';
         chooseIdleTarget();
       }
-    } else if (cat.state === 'drinking' && cat.desire === 'water') {  
+    } else if (cat.state === 'drinking' && cat.desire === 'water' && cat.lockedDesire === 'water') {  
       cat.stats.water = clamp01(cat.stats.water + 20 * dt);
       deps.consume && deps.consume('water', 10 * dt);
       velocityX = 0;
@@ -346,7 +346,7 @@ export function spawnCat(k, deps) {
         cat.state = 'idle';
         chooseIdleTarget();
       }
-    } else if (cat.state === 'eating' && cat.desire === 'food') {
+    } else if (cat.state === 'eating' && cat.desire === 'food' && cat.lockedDesire === 'food') {
       cat.stats.food = clamp01(cat.stats.food + 12 * dt);
       deps.consume && deps.consume('food', 8 * dt);
       velocityX = 0;
