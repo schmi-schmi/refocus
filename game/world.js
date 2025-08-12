@@ -26,6 +26,7 @@ export async function initOverlay(rootEl) {
     water: { level: 100, fillNode: null, widthMax: 52 },
     bed: { level: 100 },
   };
+  let roomBounds = { x: 0, y: 0, width: 0, height: 0 };
 
   // Add a floor item sprite, and for food/water also add a fill overlay used for visual depletion
   function addFloorItem(k, x, floorY, kind) {
@@ -90,19 +91,23 @@ export async function initOverlay(rootEl) {
     ]);
     worldNodes.push(floor);
 
-    // Static items: food, water, bed placed on floor
-    const gap = 100;
-    const baseX = 30;
+
+    // Place items on the floor, spaced evenly
+    const gap = 90;
+    const baseX = 22;
     worldNodes.push(...addFloorItem(k, baseX, floorY, 'food'));
     worldNodes.push(...addFloorItem(k, baseX + gap, floorY, 'water'));
-    worldNodes.push(...addFloorItem(k, baseX + gap * 2 + 40, floorY, 'bed'));
+    worldNodes.push(...addFloorItem(k, baseX + gap * 2 + 30, floorY, 'bed'));
 
     // Expose center X positions for AI navigation
     itemTargets = {
       food: { x: baseX + 32, y: floorY },
       water: { x: baseX + gap + 32, y: floorY },
-      bed: { x: baseX + gap * 2 + 40 + 32, y: floorY },
+      bed: { x: baseX + gap * 2 + 30 + 32, y: floorY },
     };
+
+    // No room bounds needed, but keep the API
+    roomBounds = { x: 0, y: 0, width: 0, height: 0 };
 
     // Sync overlay fill visuals to current levels after rebuild
     updateItemFills();
@@ -149,6 +154,7 @@ export async function initOverlay(rootEl) {
     getItemTargets: () => ({ ...itemTargets }),
     consume,
     getLevels,
+    getRoomBounds: () => ({ ...roomBounds }),
   };
 }
 

@@ -9,6 +9,7 @@
 import { initOverlay } from './world.js';
 import { spawnCat } from './pet.js';
 import { initUI } from './ui.js';
+import { initLaser } from './items/laser.js';
 
 // Create a host container that won't block clicks except for our small UI
 function ensureOverlayRoot() {
@@ -26,12 +27,14 @@ function ensureOverlayRoot() {
   const overlay = await initOverlay(root);
 
   const { setLaserActive, isLaserActive, onLaserState } = initUI();
+  const laser = initLaser(overlay.k, { isLaserActive });
 
   const cat = spawnCat(overlay.k, {
-    isLaserActive,
+    getLaserTarget: laser.getLaserTarget,
     getItemTargets: overlay.getItemTargets,
     consume: overlay.consume,
     getLevels: overlay.getLevels,
+    getRoomBounds: overlay.getRoomBounds,
   });
 
   // Reflect UI state to cat behaviors

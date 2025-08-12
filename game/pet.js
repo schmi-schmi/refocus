@@ -141,6 +141,7 @@ export function spawnCat(k, deps) {
     drag,
     deadZone = 8,
     pinToFloor = true,
+    allowedRect = null,
   }) {
     const dx = desiredX - cat.pos.x;
     const dy = desiredY - cat.pos.y;
@@ -170,37 +171,47 @@ export function spawnCat(k, deps) {
     cat.move(velocityX, velocityY);
     cat.facing = Math.sign(velocityX) || cat.facing;
 
-    // Vertical handling
+    // Clamp to allowed rectangle
     const floorY = getCatFloorY();
-    if (pinToFloor) {
-      cat.pos.y = floorY;
+    if (allowedRect) {
+      const minX = allowedRect.x + 2;
+      const maxX = allowedRect.x + allowedRect.width - CAT_WIDTH - 2;
+      cat.pos.x = Math.max(minX, Math.min(maxX, cat.pos.x));
+      if (pinToFloor) {
+        cat.pos.y = floorY;
+      } else {
+        const minY = allowedRect.y + CAT_HEIGHT;
+        const maxY = Math.min(allowedRect.y + allowedRect.height, floorY);
+        cat.pos.y = Math.min(maxY, Math.max(minY, cat.pos.y));
+      }
     } else {
-      cat.pos.y = Math.min(floorY, Math.max(CAT_HEIGHT, cat.pos.y));
+      // Default to full viewport clamp
+      if (pinToFloor) {
+        cat.pos.y = floorY;
+      } else {
+        cat.pos.y = Math.min(floorY, Math.max(CAT_HEIGHT, cat.pos.y));
+      }
+      cat.pos.x = Math.max(2, Math.min(window.innerWidth - CAT_WIDTH - 2, cat.pos.x));
     }
-
-    // Horizontal viewport clamp
-    cat.pos.x = Math.max(2, Math.min(window.innerWidth - CAT_WIDTH - 2, cat.pos.x));
 
     return { dx, dy, deadZone };
   }
 
+  // Location to just sit and chill
   function chooseIdleTarget() {
-    const choices = [
-      40 + Math.random() * 80, // food vicinity
-      40 + 140 + Math.random() * 80, // water vicinity
-      40 + 280 + Math.random() * 80, // bed vicinity
-      Math.random() * (window.innerWidth - 120), // random
-    ];
-    targetX = choices[Math.floor(Math.random() * choices.length)];
+    const rb = typeof deps.getRoomBounds === 'function' ? deps.getRoomBounds() : null;
+    if (rb && rb.width > 0) {
+      const margin = 20;
+      const minX = rb.x + margin;
+      const maxX = rb.x + rb.width - margin - CAT_WIDTH;
+      targetX = minX + Math.random() * Math.max(1, (maxX - minX));
+    } else {
+      // Fallback to viewport
+      targetX = 40 + Math.random() * Math.max(40, window.innerWidth - 80);
+    }
   }
 
   chooseIdleTarget();
-
-  // Laser pointer chasing
-  let mouse = { x: 0, y: 0 };
-  window.addEventListener('mousemove', (e) => {
-    mouse = { x: e.clientX, y: e.clientY };
-  }, { passive: true });
 
   function setChasingLaser(active) {
     cat.laserChase = Boolean(active);
@@ -231,7 +242,8 @@ export function spawnCat(k, deps) {
   // Main update
   k.onUpdate(() => {
     const dt = k.dt();
-    const laserActive = cat.laserChase && deps.isLaserActive();
+    const laserTarget = cat.laserChase && typeof deps.getLaserTarget === 'function' ? deps.getLaserTarget() : null;
+    const laserActive = Boolean(laserTarget);
 
     // Throttled autosave of stats
     saveAccumulator += dt;
@@ -250,9 +262,9 @@ export function spawnCat(k, deps) {
     // --- STAT DYNAMICS ---
     const drainBase = 1.0;
     const laserFactor = laserActive ? 3.0 : 1.0;
-    cat.stats.energy = clamp01(cat.stats.energy - (0.8 * drainBase * laserFactor * dt));
-    cat.stats.food   = clamp01(cat.stats.food   - (0.5 * drainBase * laserFactor * dt));
-    cat.stats.water  = clamp01(cat.stats.water  - (0.6 * drainBase * laserFactor * dt));
+    cat.stats.energy = clamp01(cat.stats.energy - (0.7 * drainBase * laserFactor * dt));
+    cat.stats.food   = clamp01(cat.stats.food   - (0.3 * drainBase * laserFactor * dt));
+    cat.stats.water  = clamp01(cat.stats.water  - (0.5 * drainBase * laserFactor * dt));
     cat.stats.happiness = clamp01(cat.stats.happiness + (laserActive ? 0.8 * dt : -0.05 * dt));
 
     // Decide desires based on relative needs with locking to avoid flopping
@@ -287,11 +299,12 @@ export function spawnCat(k, deps) {
     } else {
       // Ignore desires while chasing laser; keep the current lock to resume later
       cat.desire = null;
+      cat.state = null;
     }
 
     // Desired target
-    let desiredX = laserActive ? mouse.x : (targetX ?? cat.pos.x);
-    let desiredY = laserActive ? mouse.y : getCatFloorY();
+    let desiredX = laserActive ? laserTarget.x : (targetX ?? cat.pos.x);
+    let desiredY = laserActive ? laserTarget.y : getCatFloorY();
 
     console.log(`Cat state: ${cat.state}, desire: ${cat.desire}, locked: ${cat.lockedDesire}, target: ${desiredX}`);
 
@@ -312,8 +325,6 @@ export function spawnCat(k, deps) {
           } else if (cat.desire === 'bed') {
             cat.state = 'sleeping';
           }
-          // small happiness bump when needs met
-          cat.stats.happiness = clamp01(cat.stats.happiness + 4 * dt);
         }
       }
     }
@@ -367,6 +378,16 @@ export function spawnCat(k, deps) {
       }
     } else {
       // Only perform movement if not sleeping
+      // Determine allowed movement area: room when idle, full screen when chasing
+      const allowedRect = (() => {
+        if (laserActive) {
+          return { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
+        }
+        const rb = typeof deps.getRoomBounds === 'function' ? deps.getRoomBounds() : null;
+        if (rb && rb.width > 0) return rb;
+        return { x: 0, y: 0, width: window.innerWidth, height: window.innerHeight };
+      })();
+
       const { dx, deadZone: dead } = performMovementTowards({
         dt,
         desiredX,
@@ -378,6 +399,7 @@ export function spawnCat(k, deps) {
         drag,
         deadZone: 8,
         pinToFloor: !laserActive,
+        allowedRect,
       });
 
       // Idle target handling when not chasing
@@ -416,12 +438,8 @@ export function spawnCat(k, deps) {
   document.addEventListener('visibilitychange', handleVisibility, { passive: true });
   window.addEventListener('beforeunload', handleBeforeUnload, { passive: true });
 
-  // Draw a subtle laser dot if active
+  // Sleeping indicator
   k.onDraw(() => {
-    if (cat.laserChase && deps.isLaserActive()) {
-      k.drawCircle({ pos: k.vec2(mouse.x, mouse.y), radius: 3, color: k.rgb(255, 60, 60) });
-    }
-    // Sleeping indicator
     if (cat.state === 'sleeping') {
       const textPos = k.vec2(
         cat.pos.x + (CAT_WIDTH / 2) - 8,
