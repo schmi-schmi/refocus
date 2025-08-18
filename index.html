@@ -50,11 +50,7 @@
                     </div>
                 </div>
 
-                <!-- Rant space -->
-                <div class="rant-space">
-                    <h3>💭 Mind Dump</h3>
-                    <textarea placeholder="What's on your mind? Let it all out here... sometimes we just need to write it down to feel better."></textarea>
-                </div>
+                <!-- Rant space removed: left panel is now just the todo section -->
             </div>
 
             <!-- Carousel section -->
@@ -258,7 +254,6 @@
                             <span class="todo-text" contenteditable="false">${todo.text}</span>
                         </div>
                         <div class="todo-actions">
-                            <button class="todo-edit-btn">✏️</button>
                             <button class="todo-delete-btn">🗑️</button>
                         </div>
                     </div>
@@ -276,14 +271,7 @@
                     });
                 });
                 
-                // Edit button events
-                document.querySelectorAll('.todo-edit-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const todoItem = e.target.closest('.todo-item');
-                        const todoId = todoItem.dataset.id;
-                        this.startEditing(todoId);
-                    });
-                });
+                // ...edit button events removed...
                 
                 // Delete button events
                 document.querySelectorAll('.todo-delete-btn').forEach(btn => {
